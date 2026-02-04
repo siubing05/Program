@@ -220,12 +220,12 @@ function checkHash() {
 window.addEventListener('hashchange', checkHash);
 window.addEventListener('load', checkHash);
 
-// Generate date options (next 14 days)
+// Generate date options (next 60 days)
 function generateDateOptions() {
     const dateSelect = document.getElementById('eventDate');
     const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
     
-    for (let i = 0; i < 14; i++) {
+    for (let i = 0; i < 60; i++) {
         const date = new Date();
         date.setDate(date.getDate() + i);
         
@@ -241,7 +241,25 @@ function generateDateOptions() {
     }
 }
 
+// Generate time options (08:00 - 23:30)
+function generateTimeOptions() {
+    const timeSelect = document.getElementById('eventTime');
+    
+    for (let h = 8; h <= 23; h++) {
+        for (let m = 0; m < 60; m += 30) {
+            const hour = h.toString().padStart(2, '0');
+            const min = m.toString().padStart(2, '0');
+            const time = `${hour}:${min}`;
+            const option = document.createElement('option');
+            option.value = time;
+            option.textContent = time;
+            timeSelect.appendChild(option);
+        }
+    }
+}
+
 generateDateOptions();
+generateTimeOptions();
 
 // Utility
 function escapeHtml(text) {
