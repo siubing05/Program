@@ -18,8 +18,21 @@
             <section class="create-event">
                 <h2>➕ 開新場</h2>
                 <form id="createForm">
-                    <input type="text" id="eventDate" placeholder="日期 (例: 2月8日 星期六)" required>
-                    <input type="text" id="eventTime" placeholder="時間 (例: 19:30)" required>
+                    <select id="eventDate" required>
+                        <option value="">選擇日期</option>
+                    </select>
+                    <select id="eventTime" required>
+                        <option value="">選擇時間</option>
+                        <option value="18:00">18:00</option>
+                        <option value="18:30">18:30</option>
+                        <option value="19:00">19:00</option>
+                        <option value="19:30">19:30</option>
+                        <option value="20:00">20:00</option>
+                        <option value="20:30">20:30</option>
+                        <option value="21:00">21:00</option>
+                        <option value="21:30">21:30</option>
+                        <option value="22:00">22:00</option>
+                    </select>
                     <input type="text" id="eventLocation" placeholder="地點 (例: 上水足球場)" required>
                     <button type="submit">開場 🎯</button>
                 </form>

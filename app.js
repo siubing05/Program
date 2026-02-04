@@ -220,6 +220,29 @@ function checkHash() {
 window.addEventListener('hashchange', checkHash);
 window.addEventListener('load', checkHash);
 
+// Generate date options (next 14 days)
+function generateDateOptions() {
+    const dateSelect = document.getElementById('eventDate');
+    const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+    
+    for (let i = 0; i < 14; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() + i);
+        
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        const weekday = weekdays[date.getDay()];
+        
+        const label = `${month}月${day}日 (星期${weekday})`;
+        const option = document.createElement('option');
+        option.value = label;
+        option.textContent = label;
+        dateSelect.appendChild(option);
+    }
+}
+
+generateDateOptions();
+
 // Utility
 function escapeHtml(text) {
     const div = document.createElement('div');
