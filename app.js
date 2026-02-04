@@ -245,7 +245,7 @@ function generateDateOptions() {
 function generateTimeOptions() {
     const timeSelect = document.getElementById('eventTime');
     
-    for (let h = 8; h <= 23; h++) {
+    for (let h = 7; h <= 23; h++) {
         for (let m = 0; m < 60; m += 30) {
             const hour = h.toString().padStart(2, '0');
             const min = m.toString().padStart(2, '0');
