@@ -177,6 +177,18 @@ button[type="submit"]:active {
     color: rgba(255,255,255,0.8);
 }
 
+.event-info .remark {
+    font-size: 1rem;
+    margin-top: 8px;
+    color: #ffd93d;
+}
+
+.event-card .remark {
+    color: #ffd93d;
+    margin-top: 5px;
+    font-size: 0.85rem;
+}
+
 #playerList {
     list-style: none;
 }

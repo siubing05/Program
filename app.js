@@ -77,11 +77,14 @@ createForm.addEventListener('submit', (e) => {
     
     if (!date || !time || !location) return;
     
+    const remark = document.getElementById('eventRemark').value.trim();
+    
     const newEvent = db.ref('events').push();
     newEvent.set({
         date,
         time,
         location,
+        remark,
         createdAt: Date.now()
     });
     
@@ -115,6 +118,7 @@ db.ref('events').on('value', (snapshot) => {
         card.innerHTML = `
             <div class="date">📅 ${event.date}</div>
             <div class="details">⏰ ${event.time} | 📍 ${event.location}</div>
+            ${event.remark ? `<div class="remark">📝 ${escapeHtml(event.remark)}</div>` : ''}
             <div class="count">👥 ${playerCount} 人已報名</div>
         `;
         eventsList.appendChild(card);
@@ -134,6 +138,7 @@ function loadEvent(eventId) {
             <div class="date">📅 ${event.date}</div>
             <div class="time">⏰ ${event.time}</div>
             <div class="location">📍 ${event.location}</div>
+            ${event.remark ? `<div class="remark">📝 ${escapeHtml(event.remark)}</div>` : ''}
         `;
         
         // Load players
