@@ -214,6 +214,10 @@ button[type="submit"]:active {
     font-size: 0.85rem;
 }
 
+.player-type.main-sign {
+    color: #ff6b6b;
+}
+
 .player-remark {
     color: rgba(255,255,255,0.5);
     font-size: 0.85rem;

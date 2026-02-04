@@ -221,7 +221,10 @@ function loadPlayers(players) {
         li.className = 'player-item';
         
         let label = escapeHtml(player.name);
-        if (player.type) label += ` <span class="player-type">[${player.type}]</span>`;
+        if (player.type) {
+            const typeClass = player.type === '主簽' ? 'player-type main-sign' : 'player-type';
+            label += ` <span class="${typeClass}">[${player.type}]</span>`;
+        }
         if (player.remark) label += ` <span class="player-remark">(${escapeHtml(player.remark)})</span>`;
         
         li.innerHTML = `
