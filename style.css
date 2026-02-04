@@ -209,6 +209,16 @@ button[type="submit"]:active {
     font-size: 0.85rem;
 }
 
+.player-type {
+    color: #4ecca3;
+    font-size: 0.85rem;
+}
+
+.player-remark {
+    color: rgba(255,255,255,0.5);
+    font-size: 0.85rem;
+}
+
 #playerList {
     list-style: none;
 }

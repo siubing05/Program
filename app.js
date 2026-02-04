@@ -9,91 +9,133 @@ const firebaseConfig = {
     appId: "1:338089800203:web:2e09e2948f9ab60a7e0d0e"
 };
 
-// Init Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// State
 let currentEventId = null;
 let currentEventData = null;
 let editingPlayerId = null;
 
-// DOM Elements
-const homePage = document.getElementById('homePage');
-const eventPage = document.getElementById('eventPage');
-const createForm = document.getElementById('createForm');
-const eventsList = document.getElementById('eventsList');
-const noEvents = document.getElementById('noEvents');
-const backBtn = document.getElementById('backBtn');
-const deleteEventBtn = document.getElementById('deleteEventBtn');
-const editEventBtn = document.getElementById('editEventBtn');
-const eventInfo = document.getElementById('eventInfo');
-const signupForm = document.getElementById('signupForm');
-const playerList = document.getElementById('playerList');
-const playerCount = document.getElementById('playerCount');
-const noPlayers = document.getElementById('noPlayers');
-const editModal = document.getElementById('editModal');
-const editName = document.getElementById('editName');
-const cancelEdit = document.getElementById('cancelEdit');
-const saveEdit = document.getElementById('saveEdit');
+// === INIT ===
+document.addEventListener('DOMContentLoaded', () => {
+    generateDateOptions('eventDate');
+    generateTimeOptions('eventTime');
+    setupEventListeners();
+    checkHash();
+});
 
-// Edit Event Modal Elements
-const editEventModal = document.getElementById('editEventModal');
-const editEventDate = document.getElementById('editEventDate');
-const editEventTime = document.getElementById('editEventTime');
-const editEventLocation = document.getElementById('editEventLocation');
-const editEventCustomLocation = document.getElementById('editEventCustomLocation');
-const editEventRemark = document.getElementById('editEventRemark');
-const cancelEventEdit = document.getElementById('cancelEventEdit');
-const saveEventEdit = document.getElementById('saveEventEdit');
+function setupEventListeners() {
+    // Create Event Form
+    document.getElementById('createForm').addEventListener('submit', createEvent);
+    document.getElementById('eventLocation').addEventListener('change', handleLocationChange);
+    
+    // Signup Form
+    document.getElementById('signupForm').addEventListener('submit', signupPlayer);
+    
+    // Navigation
+    document.getElementById('backBtn').addEventListener('click', showHome);
+    
+    // Event Actions
+    document.getElementById('editEventBtn').addEventListener('click', openEditEvent);
+    document.getElementById('deleteEventBtn').addEventListener('click', deleteEvent);
+    
+    // Edit Event Modal
+    document.getElementById('editEventLocation').addEventListener('change', handleEditLocationChange);
+    document.getElementById('cancelEventEdit').addEventListener('click', closeEditEventModal);
+    document.getElementById('saveEventEdit').addEventListener('click', saveEventEdit);
+    
+    // Edit Player Modal
+    document.getElementById('cancelEdit').addEventListener('click', closeEditPlayerModal);
+    document.getElementById('saveEdit').addEventListener('click', savePlayerEdit);
+    
+    // Hash change
+    window.addEventListener('hashchange', checkHash);
+}
 
-// Show/Hide Pages
+// === DATE/TIME GENERATORS ===
+function generateDateOptions(selectId) {
+    const select = document.getElementById(selectId);
+    const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+    
+    for (let i = 0; i < 60; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() + i);
+        const label = `${date.getMonth() + 1}月${date.getDate()}日 (星期${weekdays[date.getDay()]})`;
+        const option = document.createElement('option');
+        option.value = label;
+        option.textContent = label;
+        select.appendChild(option);
+    }
+}
+
+function generateTimeOptions(selectId) {
+    const select = document.getElementById(selectId);
+    
+    for (let h = 7; h <= 23; h++) {
+        for (let m = 0; m < 60; m += 30) {
+            const time = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+            const option = document.createElement('option');
+            option.value = time;
+            option.textContent = time;
+            select.appendChild(option);
+        }
+    }
+}
+
+// === NAVIGATION ===
 function showHome() {
-    homePage.classList.remove('hidden');
-    eventPage.classList.add('hidden');
+    document.getElementById('homePage').classList.remove('hidden');
+    document.getElementById('eventPage').classList.add('hidden');
     currentEventId = null;
     currentEventData = null;
     window.location.hash = '';
 }
 
 function showEvent(eventId) {
-    homePage.classList.add('hidden');
-    eventPage.classList.remove('hidden');
+    document.getElementById('homePage').classList.add('hidden');
+    document.getElementById('eventPage').classList.remove('hidden');
     currentEventId = eventId;
     window.location.hash = eventId;
     loadEvent(eventId);
 }
 
-// Create Event
-const locationSelect = document.getElementById('eventLocation');
-const customLocation = document.getElementById('customLocation');
-
-locationSelect.addEventListener('change', () => {
-    if (locationSelect.value === 'other') {
-        customLocation.classList.remove('hidden');
-        customLocation.required = true;
+function checkHash() {
+    const hash = window.location.hash.slice(1);
+    if (hash) {
+        showEvent(hash);
     } else {
-        customLocation.classList.add('hidden');
-        customLocation.required = false;
+        showHome();
     }
-});
+}
 
-createForm.addEventListener('submit', (e) => {
+// === CREATE EVENT ===
+function handleLocationChange() {
+    const select = document.getElementById('eventLocation');
+    const custom = document.getElementById('customLocation');
+    if (select.value === 'other') {
+        custom.classList.remove('hidden');
+        custom.required = true;
+    } else {
+        custom.classList.add('hidden');
+        custom.required = false;
+    }
+}
+
+function createEvent(e) {
     e.preventDefault();
-    const date = document.getElementById('eventDate').value.trim();
-    const time = document.getElementById('eventTime').value.trim();
+    const date = document.getElementById('eventDate').value;
+    const time = document.getElementById('eventTime').value;
     let location = document.getElementById('eventLocation').value;
     
     if (location === 'other') {
-        location = customLocation.value.trim();
+        location = document.getElementById('customLocation').value.trim();
     }
     
     if (!date || !time || !location) return;
     
     const remark = document.getElementById('eventRemark').value.trim();
     
-    const newEvent = db.ref('events').push();
-    newEvent.set({
+    db.ref('events').push({
         date,
         time,
         location,
@@ -101,33 +143,30 @@ createForm.addEventListener('submit', (e) => {
         createdAt: Date.now()
     });
     
-    createForm.reset();
-    customLocation.classList.add('hidden');
-});
+    document.getElementById('createForm').reset();
+    document.getElementById('customLocation').classList.add('hidden');
+}
 
-// Load Events List
+// === LOAD EVENTS ===
 db.ref('events').on('value', (snapshot) => {
+    const eventsList = document.getElementById('eventsList');
+    const noEvents = document.getElementById('noEvents');
     eventsList.innerHTML = '';
-    const events = snapshot.val();
     
+    const events = snapshot.val();
     if (!events) {
         noEvents.classList.remove('hidden');
         return;
     }
     
     noEvents.classList.add('hidden');
-    
-    // Sort by createdAt desc
     const sorted = Object.entries(events).sort((a, b) => b[1].createdAt - a[1].createdAt);
     
     sorted.forEach(([id, event]) => {
+        const count = event.players ? Object.keys(event.players).length : 0;
         const card = document.createElement('div');
         card.className = 'event-card';
         card.onclick = () => showEvent(id);
-        
-        // Count players
-        const count = event.players ? Object.keys(event.players).length : 0;
-        
         card.innerHTML = `
             <div class="date">📅 ${event.date}</div>
             <div class="details">⏰ ${event.time} | 📍 ${event.location}</div>
@@ -138,7 +177,7 @@ db.ref('events').on('value', (snapshot) => {
     });
 });
 
-// Load Single Event
+// === LOAD SINGLE EVENT ===
 function loadEvent(eventId) {
     db.ref(`events/${eventId}`).on('value', (snapshot) => {
         const event = snapshot.val();
@@ -149,58 +188,76 @@ function loadEvent(eventId) {
         
         currentEventData = event;
         
-        eventInfo.innerHTML = `
+        document.getElementById('eventInfo').innerHTML = `
             <div class="date">📅 ${event.date}</div>
             <div class="time">⏰ ${event.time}</div>
             <div class="location">📍 ${event.location}</div>
             ${event.remark ? `<div class="remark">📝 ${escapeHtml(event.remark)}</div>` : ''}
         `;
         
-        // Load players
-        playerList.innerHTML = '';
-        const players = event.players;
-        
-        if (!players) {
-            playerCount.textContent = '0';
-            noPlayers.classList.remove('hidden');
-            return;
-        }
-        
-        noPlayers.classList.add('hidden');
-        const playerArray = Object.entries(players).sort((a, b) => a[1].joinedAt - b[1].joinedAt);
-        playerCount.textContent = playerArray.length;
-        
-        playerArray.forEach(([id, player], index) => {
-            const li = document.createElement('li');
-            li.className = 'player-item';
-            li.innerHTML = `
-                <span class="number">${index + 1}.</span>
-                <span class="name">${escapeHtml(player.name)}</span>
-                <div class="actions">
-                    <button class="edit-btn" onclick="openEdit('${id}', '${escapeHtml(player.name)}')">✏️</button>
-                    <button class="delete-btn" onclick="deletePlayer('${id}')">❌</button>
-                </div>
-            `;
-            playerList.appendChild(li);
-        });
+        loadPlayers(event.players);
     });
 }
 
-// Sign Up
-signupForm.addEventListener('submit', (e) => {
+function loadPlayers(players) {
+    const list = document.getElementById('playerList');
+    const countEl = document.getElementById('playerCount');
+    const noPlayers = document.getElementById('noPlayers');
+    
+    list.innerHTML = '';
+    
+    if (!players) {
+        countEl.textContent = '0';
+        noPlayers.classList.remove('hidden');
+        return;
+    }
+    
+    noPlayers.classList.add('hidden');
+    const arr = Object.entries(players).sort((a, b) => a[1].joinedAt - b[1].joinedAt);
+    countEl.textContent = arr.length;
+    
+    arr.forEach(([id, player], index) => {
+        const li = document.createElement('li');
+        li.className = 'player-item';
+        
+        let label = escapeHtml(player.name);
+        if (player.type) label += ` <span class="player-type">[${player.type}]</span>`;
+        if (player.remark) label += ` <span class="player-remark">(${escapeHtml(player.remark)})</span>`;
+        
+        li.innerHTML = `
+            <span class="number">${index + 1}.</span>
+            <span class="name">${label}</span>
+            <div class="actions">
+                <button class="edit-btn" onclick="openEditPlayer('${id}')">✏️</button>
+                <button class="delete-btn" onclick="deletePlayer('${id}')">❌</button>
+            </div>
+        `;
+        list.appendChild(li);
+    });
+}
+
+// === SIGNUP ===
+function signupPlayer(e) {
     e.preventDefault();
+    if (!currentEventId) return;
+    
     const name = document.getElementById('playerName').value.trim();
-    if (!name || !currentEventId) return;
+    if (!name) return;
+    
+    const type = document.getElementById('playerType').value;
+    const remark = document.getElementById('playerRemark').value.trim();
     
     db.ref(`events/${currentEventId}/players`).push({
         name,
+        type: type || '',
+        remark: remark || '',
         joinedAt: Date.now()
     });
     
-    document.getElementById('playerName').value = '';
-});
+    document.getElementById('signupForm').reset();
+}
 
-// Delete Player
+// === DELETE PLAYER ===
 function deletePlayer(playerId) {
     if (!currentEventId) return;
     if (confirm('確定要刪除？')) {
@@ -208,84 +265,104 @@ function deletePlayer(playerId) {
     }
 }
 
-// Edit Player
-function openEdit(playerId, currentName) {
+// === EDIT PLAYER ===
+function openEditPlayer(playerId) {
+    if (!currentEventData || !currentEventData.players) return;
+    const player = currentEventData.players[playerId];
+    if (!player) return;
+    
     editingPlayerId = playerId;
-    editName.value = currentName;
-    editModal.classList.remove('hidden');
-    editName.focus();
+    document.getElementById('editName').value = player.name;
+    document.getElementById('editType').value = player.type || '';
+    document.getElementById('editPlayerRemark').value = player.remark || '';
+    document.getElementById('editModal').classList.remove('hidden');
 }
 
-cancelEdit.addEventListener('click', () => {
-    editModal.classList.add('hidden');
+function closeEditPlayerModal() {
+    document.getElementById('editModal').classList.add('hidden');
     editingPlayerId = null;
-});
+}
 
-saveEdit.addEventListener('click', () => {
-    const newName = editName.value.trim();
-    if (!newName || !currentEventId || !editingPlayerId) return;
+function savePlayerEdit() {
+    if (!currentEventId || !editingPlayerId) return;
+    
+    const name = document.getElementById('editName').value.trim();
+    if (!name) return;
+    
+    const type = document.getElementById('editType').value;
+    const remark = document.getElementById('editPlayerRemark').value.trim();
     
     db.ref(`events/${currentEventId}/players/${editingPlayerId}`).update({
-        name: newName
+        name,
+        type: type || '',
+        remark: remark || ''
     });
     
-    editModal.classList.add('hidden');
-    editingPlayerId = null;
-});
+    closeEditPlayerModal();
+}
 
-// Edit Event
-editEventBtn.addEventListener('click', () => {
+// === EDIT EVENT ===
+function openEditEvent() {
     if (!currentEventData) return;
     
-    // Populate edit modal with current data
-    populateEditDateOptions();
-    populateEditTimeOptions();
+    const dateSelect = document.getElementById('editEventDate');
+    const timeSelect = document.getElementById('editEventTime');
     
-    // Set current values
-    editEventDate.value = currentEventData.date;
-    editEventTime.value = currentEventData.time;
+    // Clear and regenerate
+    dateSelect.innerHTML = '';
+    timeSelect.innerHTML = '';
+    generateDateOptions('editEventDate');
+    generateTimeOptions('editEventTime');
     
-    // Check if location is custom
-    const locationOptions = Array.from(editEventLocation.options).map(o => o.value);
-    if (locationOptions.includes(currentEventData.location)) {
-        editEventLocation.value = currentEventData.location;
-        editEventCustomLocation.classList.add('hidden');
+    // Set values
+    dateSelect.value = currentEventData.date;
+    timeSelect.value = currentEventData.time;
+    
+    const locSelect = document.getElementById('editEventLocation');
+    const customLoc = document.getElementById('editEventCustomLocation');
+    const locations = ['北區運動場', '大埔廣福(細)', '大埔廣福公園(大)', '大埔運動場(太和)', '石門'];
+    
+    if (locations.includes(currentEventData.location)) {
+        locSelect.value = currentEventData.location;
+        customLoc.classList.add('hidden');
     } else {
-        editEventLocation.value = 'other';
-        editEventCustomLocation.value = currentEventData.location;
-        editEventCustomLocation.classList.remove('hidden');
+        locSelect.value = 'other';
+        customLoc.value = currentEventData.location;
+        customLoc.classList.remove('hidden');
     }
     
-    editEventRemark.value = currentEventData.remark || '';
-    editEventModal.classList.remove('hidden');
-});
+    document.getElementById('editEventRemark').value = currentEventData.remark || '';
+    document.getElementById('editEventModal').classList.remove('hidden');
+}
 
-editEventLocation.addEventListener('change', () => {
-    if (editEventLocation.value === 'other') {
-        editEventCustomLocation.classList.remove('hidden');
+function handleEditLocationChange() {
+    const select = document.getElementById('editEventLocation');
+    const custom = document.getElementById('editEventCustomLocation');
+    if (select.value === 'other') {
+        custom.classList.remove('hidden');
     } else {
-        editEventCustomLocation.classList.add('hidden');
+        custom.classList.add('hidden');
     }
-});
+}
 
-cancelEventEdit.addEventListener('click', () => {
-    editEventModal.classList.add('hidden');
-});
+function closeEditEventModal() {
+    document.getElementById('editEventModal').classList.add('hidden');
+}
 
-saveEventEdit.addEventListener('click', () => {
+function saveEventEdit() {
     if (!currentEventId) return;
     
-    const date = editEventDate.value;
-    const time = editEventTime.value;
-    let location = editEventLocation.value;
+    const date = document.getElementById('editEventDate').value;
+    const time = document.getElementById('editEventTime').value;
+    let location = document.getElementById('editEventLocation').value;
     
     if (location === 'other') {
-        location = editEventCustomLocation.value.trim();
+        location = document.getElementById('editEventCustomLocation').value.trim();
     }
     
     if (!date || !time || !location) return;
     
-    const remark = editEventRemark.value.trim();
+    const remark = document.getElementById('editEventRemark').value.trim();
     
     db.ref(`events/${currentEventId}`).update({
         date,
@@ -294,114 +371,19 @@ saveEventEdit.addEventListener('click', () => {
         remark: remark || ''
     });
     
-    editEventModal.classList.add('hidden');
-});
+    closeEditEventModal();
+}
 
-// Delete Event
-deleteEventBtn.addEventListener('click', () => {
+// === DELETE EVENT ===
+function deleteEvent() {
     if (!currentEventId) return;
     if (confirm('確定要刪除成個場次？')) {
         db.ref(`events/${currentEventId}`).remove();
         showHome();
     }
-});
-
-// Back Button
-backBtn.addEventListener('click', showHome);
-
-// Handle URL Hash
-function checkHash() {
-    const hash = window.location.hash.slice(1);
-    if (hash) {
-        showEvent(hash);
-    } else {
-        showHome();
-    }
 }
 
-window.addEventListener('hashchange', checkHash);
-window.addEventListener('load', checkHash);
-
-// Generate date options (next 60 days)
-function generateDateOptions() {
-    const dateSelect = document.getElementById('eventDate');
-    const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
-    
-    for (let i = 0; i < 60; i++) {
-        const date = new Date();
-        date.setDate(date.getDate() + i);
-        
-        const month = date.getMonth() + 1;
-        const day = date.getDate();
-        const weekday = weekdays[date.getDay()];
-        
-        const label = `${month}月${day}日 (星期${weekday})`;
-        const option = document.createElement('option');
-        option.value = label;
-        option.textContent = label;
-        dateSelect.appendChild(option);
-    }
-}
-
-// Generate time options (07:00 - 23:30)
-function generateTimeOptions() {
-    const timeSelect = document.getElementById('eventTime');
-    
-    for (let h = 7; h <= 23; h++) {
-        for (let m = 0; m < 60; m += 30) {
-            const hour = h.toString().padStart(2, '0');
-            const min = m.toString().padStart(2, '0');
-            const time = `${hour}:${min}`;
-            const option = document.createElement('option');
-            option.value = time;
-            option.textContent = time;
-            timeSelect.appendChild(option);
-        }
-    }
-}
-
-// Populate Edit Modal Date Options
-function populateEditDateOptions() {
-    editEventDate.innerHTML = '';
-    const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
-    
-    for (let i = 0; i < 60; i++) {
-        const date = new Date();
-        date.setDate(date.getDate() + i);
-        
-        const month = date.getMonth() + 1;
-        const day = date.getDate();
-        const weekday = weekdays[date.getDay()];
-        
-        const label = `${month}月${day}日 (星期${weekday})`;
-        const option = document.createElement('option');
-        option.value = label;
-        option.textContent = label;
-        editEventDate.appendChild(option);
-    }
-}
-
-// Populate Edit Modal Time Options
-function populateEditTimeOptions() {
-    editEventTime.innerHTML = '';
-    
-    for (let h = 7; h <= 23; h++) {
-        for (let m = 0; m < 60; m += 30) {
-            const hour = h.toString().padStart(2, '0');
-            const min = m.toString().padStart(2, '0');
-            const time = `${hour}:${min}`;
-            const option = document.createElement('option');
-            option.value = time;
-            option.textContent = time;
-            editEventTime.appendChild(option);
-        }
-    }
-}
-
-generateDateOptions();
-generateTimeOptions();
-
-// Utility
+// === UTILITY ===
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;

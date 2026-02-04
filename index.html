@@ -56,14 +56,18 @@
                 </div>
             </header>
 
-            <section class="event-info" id="eventInfo">
-                <!-- Event details here -->
-            </section>
+            <section class="event-info" id="eventInfo"></section>
 
             <section class="signup">
                 <h2>✍️ 報名</h2>
                 <form id="signupForm">
                     <input type="text" id="playerName" placeholder="輸入你嘅名" required maxlength="20">
+                    <select id="playerType">
+                        <option value="">類型 (可選)</option>
+                        <option value="主簽">主簽</option>
+                        <option value="副簽">副簽</option>
+                    </select>
+                    <input type="text" id="playerRemark" placeholder="備註 (可留空)" maxlength="50">
                     <button type="submit">報名 ✅</button>
                 </form>
             </section>
@@ -79,8 +83,14 @@
     <!-- Edit Player Modal -->
     <div id="editModal" class="modal hidden">
         <div class="modal-content">
-            <h3>✏️ 修改名稱</h3>
-            <input type="text" id="editName" placeholder="新名稱" maxlength="20">
+            <h3>✏️ 修改</h3>
+            <input type="text" id="editName" placeholder="名稱" maxlength="20">
+            <select id="editType">
+                <option value="">類型 (可選)</option>
+                <option value="主簽">主簽</option>
+                <option value="副簽">副簽</option>
+            </select>
+            <input type="text" id="editPlayerRemark" placeholder="備註 (可留空)" maxlength="50">
             <div class="modal-btns">
                 <button id="cancelEdit" class="btn-cancel">取消</button>
                 <button id="saveEdit" class="btn-save">儲存</button>
