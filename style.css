@@ -53,6 +53,26 @@ header h1 {
     background: rgba(255,255,255,0.1);
 }
 
+.header-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.edit-event-btn {
+    background: none;
+    border: none;
+    color: #4ecca3;
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+
+.edit-event-btn:hover {
+    background: rgba(78, 204, 163, 0.2);
+}
+
 .delete-event-btn {
     color: #ff6b6b;
 }

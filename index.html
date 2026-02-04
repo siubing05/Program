@@ -50,7 +50,10 @@
         <div id="eventPage" class="page hidden">
             <header>
                 <button id="backBtn" class="back-btn">← 返回</button>
-                <button id="deleteEventBtn" class="delete-event-btn">🗑️ 刪除場次</button>
+                <div class="header-actions">
+                    <button id="editEventBtn" class="edit-event-btn">✏️ 編輯</button>
+                    <button id="deleteEventBtn" class="delete-event-btn">🗑️ 刪除</button>
+                </div>
             </header>
 
             <section class="event-info" id="eventInfo">
@@ -81,6 +84,30 @@
             <div class="modal-btns">
                 <button id="cancelEdit" class="btn-cancel">取消</button>
                 <button id="saveEdit" class="btn-save">儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Event Modal -->
+    <div id="editEventModal" class="modal hidden">
+        <div class="modal-content">
+            <h3>✏️ 編輯場次</h3>
+            <select id="editEventDate"></select>
+            <select id="editEventTime"></select>
+            <select id="editEventLocation">
+                <option value="">選擇地點</option>
+                <option value="北區運動場">北區運動場</option>
+                <option value="大埔廣福(細)">大埔廣福(細)</option>
+                <option value="大埔廣福公園(大)">大埔廣福公園(大)</option>
+                <option value="大埔運動場(太和)">大埔運動場(太和)</option>
+                <option value="石門">石門</option>
+                <option value="other">其他...</option>
+            </select>
+            <input type="text" id="editEventCustomLocation" placeholder="輸入地點" class="hidden">
+            <input type="text" id="editEventRemark" placeholder="備註 (可留空)" maxlength="100">
+            <div class="modal-btns">
+                <button id="cancelEventEdit" class="btn-cancel">取消</button>
+                <button id="saveEventEdit" class="btn-save">儲存</button>
             </div>
         </div>
     </div>

@@ -15,6 +15,7 @@ const db = firebase.database();
 
 // State
 let currentEventId = null;
+let currentEventData = null;
 let editingPlayerId = null;
 
 // DOM Elements
@@ -25,6 +26,7 @@ const eventsList = document.getElementById('eventsList');
 const noEvents = document.getElementById('noEvents');
 const backBtn = document.getElementById('backBtn');
 const deleteEventBtn = document.getElementById('deleteEventBtn');
+const editEventBtn = document.getElementById('editEventBtn');
 const eventInfo = document.getElementById('eventInfo');
 const signupForm = document.getElementById('signupForm');
 const playerList = document.getElementById('playerList');
@@ -35,11 +37,22 @@ const editName = document.getElementById('editName');
 const cancelEdit = document.getElementById('cancelEdit');
 const saveEdit = document.getElementById('saveEdit');
 
+// Edit Event Modal Elements
+const editEventModal = document.getElementById('editEventModal');
+const editEventDate = document.getElementById('editEventDate');
+const editEventTime = document.getElementById('editEventTime');
+const editEventLocation = document.getElementById('editEventLocation');
+const editEventCustomLocation = document.getElementById('editEventCustomLocation');
+const editEventRemark = document.getElementById('editEventRemark');
+const cancelEventEdit = document.getElementById('cancelEventEdit');
+const saveEventEdit = document.getElementById('saveEventEdit');
+
 // Show/Hide Pages
 function showHome() {
     homePage.classList.remove('hidden');
     eventPage.classList.add('hidden');
     currentEventId = null;
+    currentEventData = null;
     window.location.hash = '';
 }
 
@@ -84,7 +97,7 @@ createForm.addEventListener('submit', (e) => {
         date,
         time,
         location,
-        remark,
+        remark: remark || '',
         createdAt: Date.now()
     });
     
@@ -113,13 +126,13 @@ db.ref('events').on('value', (snapshot) => {
         card.onclick = () => showEvent(id);
         
         // Count players
-        const playerCount = event.players ? Object.keys(event.players).length : 0;
+        const count = event.players ? Object.keys(event.players).length : 0;
         
         card.innerHTML = `
             <div class="date">📅 ${event.date}</div>
             <div class="details">⏰ ${event.time} | 📍 ${event.location}</div>
             ${event.remark ? `<div class="remark">📝 ${escapeHtml(event.remark)}</div>` : ''}
-            <div class="count">👥 ${playerCount} 人已報名</div>
+            <div class="count">👥 ${count} 人已報名</div>
         `;
         eventsList.appendChild(card);
     });
@@ -133,6 +146,8 @@ function loadEvent(eventId) {
             showHome();
             return;
         }
+        
+        currentEventData = event;
         
         eventInfo.innerHTML = `
             <div class="date">📅 ${event.date}</div>
@@ -218,6 +233,70 @@ saveEdit.addEventListener('click', () => {
     editingPlayerId = null;
 });
 
+// Edit Event
+editEventBtn.addEventListener('click', () => {
+    if (!currentEventData) return;
+    
+    // Populate edit modal with current data
+    populateEditDateOptions();
+    populateEditTimeOptions();
+    
+    // Set current values
+    editEventDate.value = currentEventData.date;
+    editEventTime.value = currentEventData.time;
+    
+    // Check if location is custom
+    const locationOptions = Array.from(editEventLocation.options).map(o => o.value);
+    if (locationOptions.includes(currentEventData.location)) {
+        editEventLocation.value = currentEventData.location;
+        editEventCustomLocation.classList.add('hidden');
+    } else {
+        editEventLocation.value = 'other';
+        editEventCustomLocation.value = currentEventData.location;
+        editEventCustomLocation.classList.remove('hidden');
+    }
+    
+    editEventRemark.value = currentEventData.remark || '';
+    editEventModal.classList.remove('hidden');
+});
+
+editEventLocation.addEventListener('change', () => {
+    if (editEventLocation.value === 'other') {
+        editEventCustomLocation.classList.remove('hidden');
+    } else {
+        editEventCustomLocation.classList.add('hidden');
+    }
+});
+
+cancelEventEdit.addEventListener('click', () => {
+    editEventModal.classList.add('hidden');
+});
+
+saveEventEdit.addEventListener('click', () => {
+    if (!currentEventId) return;
+    
+    const date = editEventDate.value;
+    const time = editEventTime.value;
+    let location = editEventLocation.value;
+    
+    if (location === 'other') {
+        location = editEventCustomLocation.value.trim();
+    }
+    
+    if (!date || !time || !location) return;
+    
+    const remark = editEventRemark.value.trim();
+    
+    db.ref(`events/${currentEventId}`).update({
+        date,
+        time,
+        location,
+        remark: remark || ''
+    });
+    
+    editEventModal.classList.add('hidden');
+});
+
 // Delete Event
 deleteEventBtn.addEventListener('click', () => {
     if (!currentEventId) return;
@@ -264,7 +343,7 @@ function generateDateOptions() {
     }
 }
 
-// Generate time options (08:00 - 23:30)
+// Generate time options (07:00 - 23:30)
 function generateTimeOptions() {
     const timeSelect = document.getElementById('eventTime');
     
@@ -277,6 +356,44 @@ function generateTimeOptions() {
             option.value = time;
             option.textContent = time;
             timeSelect.appendChild(option);
+        }
+    }
+}
+
+// Populate Edit Modal Date Options
+function populateEditDateOptions() {
+    editEventDate.innerHTML = '';
+    const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+    
+    for (let i = 0; i < 60; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() + i);
+        
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        const weekday = weekdays[date.getDay()];
+        
+        const label = `${month}月${day}日 (星期${weekday})`;
+        const option = document.createElement('option');
+        option.value = label;
+        option.textContent = label;
+        editEventDate.appendChild(option);
+    }
+}
+
+// Populate Edit Modal Time Options
+function populateEditTimeOptions() {
+    editEventTime.innerHTML = '';
+    
+    for (let h = 7; h <= 23; h++) {
+        for (let m = 0; m < 60; m += 30) {
+            const hour = h.toString().padStart(2, '0');
+            const min = m.toString().padStart(2, '0');
+            const time = `${hour}:${min}`;
+            const option = document.createElement('option');
+            option.value = time;
+            option.textContent = time;
+            editEventTime.appendChild(option);
         }
     }
 }
