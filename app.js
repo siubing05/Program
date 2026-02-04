@@ -52,11 +52,28 @@ function showEvent(eventId) {
 }
 
 // Create Event
+const locationSelect = document.getElementById('eventLocation');
+const customLocation = document.getElementById('customLocation');
+
+locationSelect.addEventListener('change', () => {
+    if (locationSelect.value === 'other') {
+        customLocation.classList.remove('hidden');
+        customLocation.required = true;
+    } else {
+        customLocation.classList.add('hidden');
+        customLocation.required = false;
+    }
+});
+
 createForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const date = document.getElementById('eventDate').value.trim();
     const time = document.getElementById('eventTime').value.trim();
-    const location = document.getElementById('eventLocation').value.trim();
+    let location = document.getElementById('eventLocation').value;
+    
+    if (location === 'other') {
+        location = customLocation.value.trim();
+    }
     
     if (!date || !time || !location) return;
     
@@ -69,6 +86,7 @@ createForm.addEventListener('submit', (e) => {
     });
     
     createForm.reset();
+    customLocation.classList.add('hidden');
 });
 
 // Load Events List

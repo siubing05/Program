@@ -24,7 +24,16 @@
                     <select id="eventTime" required>
                         <option value="">選擇時間</option>
                     </select>
-                    <input type="text" id="eventLocation" placeholder="地點 (例: 上水足球場)" required>
+                    <select id="eventLocation" required>
+                        <option value="">選擇地點</option>
+                        <option value="北區運動場">北區運動場</option>
+                        <option value="大埔廣福(細)">大埔廣福(細)</option>
+                        <option value="大埔廣福公園(大)">大埔廣福公園(大)</option>
+                        <option value="大埔運動場(太和)">大埔運動場(太和)</option>
+                        <option value="石門">石門</option>
+                        <option value="other">其他...</option>
+                    </select>
+                    <input type="text" id="customLocation" placeholder="輸入地點" class="hidden">
                     <button type="submit">開場 🎯</button>
                 </form>
             </section>
