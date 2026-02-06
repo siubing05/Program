@@ -168,8 +168,8 @@ db.ref('events').on('value', (snapshot) => {
         card.className = 'event-card';
         card.onclick = () => showEvent(id);
         card.innerHTML = `
-            <div class="date">📅 ${event.date}</div>
-            <div class="details">⏰ ${event.time} | 📍 ${event.location}</div>
+            <div class="date">📅 ${escapeHtml(event.date)}</div>
+            <div class="details">⏰ ${escapeHtml(event.time)} | 📍 ${escapeHtml(event.location)}</div>
             ${event.remark ? `<div class="remark">📝 ${escapeHtml(event.remark)}</div>` : ''}
             <div class="count">👥 ${count} 人已報名</div>
         `;
@@ -189,9 +189,9 @@ function loadEvent(eventId) {
         currentEventData = event;
         
         document.getElementById('eventInfo').innerHTML = `
-            <div class="date">📅 ${event.date}</div>
-            <div class="time">⏰ ${event.time}</div>
-            <div class="location">📍 ${event.location}</div>
+            <div class="date">📅 ${escapeHtml(event.date)}</div>
+            <div class="time">⏰ ${escapeHtml(event.time)}</div>
+            <div class="location">📍 ${escapeHtml(event.location)}</div>
             ${event.remark ? `<div class="remark">📝 ${escapeHtml(event.remark)}</div>` : ''}
         `;
         
@@ -223,7 +223,7 @@ function loadPlayers(players) {
         let label = escapeHtml(player.name);
         if (player.type) {
             const typeClass = player.type === '主簽' ? 'player-type main-sign' : 'player-type';
-            label += ` <span class="${typeClass}">[${player.type}]</span>`;
+            label += ` <span class="${typeClass}">[${escapeHtml(player.type)}]</span>`;
         }
         if (player.remark) label += ` <span class="player-remark">(${escapeHtml(player.remark)})</span>`;
         

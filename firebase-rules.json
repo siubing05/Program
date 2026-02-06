@@ -1,0 +1,25 @@
+{
+  "rules": {
+    ".read": true,
+    ".write": true,
+    "events": {
+      "$event_id": {
+        ".validate": "newData.hasChildren(['date', 'time', 'location', 'createdAt'])",
+        "date": { ".validate": "newData.isString()" },
+        "time": { ".validate": "newData.isString()" },
+        "location": { ".validate": "newData.isString()" },
+        "remark": { ".validate": "newData.isString()" },
+        "createdAt": { ".validate": "newData.isNumber()" },
+        "players": {
+          "$player_id": {
+            ".validate": "newData.hasChildren(['name', 'joinedAt'])",
+            "name": { ".validate": "newData.isString() && newData.val().length > 0" },
+            "type": { ".validate": "newData.isString()" },
+            "remark": { ".validate": "newData.isString()" },
+            "joinedAt": { ".validate": "newData.isNumber()" }
+          }
+        }
+      }
+    }
+  }
+}
